@@ -22,6 +22,7 @@
 			$data = $this->parseRequestBody();
 
 			$GLOBALS["_{$method}"] = $data;
+			if( !empty($data['files']) ) $_FILES = $data['files'];
 		}
 
 		public function parseRequestBody()
@@ -69,13 +70,12 @@
 
 		private function parseFile($block)
 		{
-			preg_match("/Content-Type:\s*([\w\/-]+).*/s", $block, $content);  
-			preg_match("/name=\"([^\"]*)\".*filename=\"([^\"]*)\".*Content-Type\:\s[\w-]+\/[\w-]+[\n|\r]*([^\n\r].*)?$/s", $block, $matches);
-			$filePath = $this->saveFile($matches[3]);
+			preg_match_all("/name=\"([^\"]*)\";\s*filename=\"([^\"]*)\".+Content-Type:\s*([\w-]+\/[\w-]+)[\n|\r]*([^\n\r].*)?/s", $block, $matches);
+			$filePath = $this->saveFile($matches[4][0]);
 			$fileSize = filesize($filePath);
 			$this->_data['files'][] = array(
-				'type' => $content[1],
-				'name' => $matches[2],
+				'type' => $matches[3][0],
+				'name' => $matches[2][0],
 				'tmp_name' => $filePath,
 				//'content' => $matches[3],
 				'size' => $fileSize
