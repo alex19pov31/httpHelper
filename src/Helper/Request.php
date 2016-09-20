@@ -16,7 +16,6 @@
 		public function __construct()
 		{
 			if(!$this->checkMethod()) return false;
-
 			$method = $this->getMethodName();
 			$data = $this->parseRequestBody();
 
@@ -59,22 +58,24 @@
 			return $this->_blocks;
 		}
 
-		private function parseBlock()
+		private function parseBlock($block)
 		{
 			preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
 			$this->_data[$matches[1]] = $matches[2];
 		}
 
-		private function parseFile()
+		private function parseFile($block)
 		{
 			preg_match("/Content-Type:\s*([\w\/-]+).*/s", $block, $content);  
-			preg_match("/name=\"([^\"]*)\".*filename=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s", $block, $matches);
-			$this->_data['files'][$matches[1]] = array(
+			preg_match("/name=\"([^\"]*)\".*filename=\"([^\"]*)\".*Content-Type\:\s[\w-]+\/[\w-]+[\n|\r]*([^\n\r].*)?$/s", $block, $matches);
+			$filePath = $this->saveFile($matches[3]);
+			$fileSize = filesize($filePath);
+			$this->_data['files'][] = array(
 				'type' => $content[1],
 				'name' => $matches[2],
-				'tmp_name' => $this->saveFile($matches[3]),
-				'content' => $matches[3],
-				'size' => strlen($matches[3]);
+				'tmp_name' => $filePath,
+				//'content' => $matches[3],
+				'size' => $fileSize
 			);
 		}
 
@@ -86,7 +87,7 @@
 			return $tmpFile;
 		}
 
-		private function checkFile()
+		private function checkFile($block)
 		{
 			return strpos($block, 'Content-Type:') !== false;
 		}
