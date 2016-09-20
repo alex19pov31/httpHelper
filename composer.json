@@ -3,7 +3,7 @@
     "description": "work with $_PUT",
     "keywords": ["http", "put", "request"],
     "type": "library",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "authors": [
         {
             "name": "Nesterov Alexandr",

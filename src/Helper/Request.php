@@ -10,12 +10,14 @@
 		private $_blocks;
 		private $_data = [];
 		private $_method;
+		private $_checked;
 
 		private $disallowMethods = ['POST', 'GET'];
 		
 		public function __construct()
 		{
-			if(!$this->checkMethod()) return false;
+			$this->_checked = $this->checkMethod();
+
 			$method = $this->getMethodName();
 			$data = $this->parseRequestBody();
 
@@ -24,6 +26,7 @@
 
 		public function parseRequestBody()
 		{
+			if(!$this->_checked) return false;
 			if(!empty($this->_data)) return $this->_data;
 
 			$arBlocks = $this->getBlocks();
@@ -95,7 +98,13 @@
 		private function checkMethod()
 		{
 			$method = $this->getMethodName();
-			return !in_array($method, $this->disallowMethods);
+			if( in_array($method, $this->disallowMethods) ) return false;
+
+			$input = file_get_contents('php://input');
+			preg_match('/boundary=(.*)$/', $_SERVER['CONTENT_TYPE'], $matches);
+
+			if ( empty($matches) ) return false;
+			return true;
 		}
 
 		private function getMethodName()
